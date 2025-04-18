@@ -153,30 +153,55 @@ def main():
     col1, col2 = st.columns([2, 1])
 
     with col1:
-        st.subheader("Your Bingo Card")
-        for i in range(5):
-            cols = st.columns(5)
-            for j in range(5):
-                # Determine button color
-                if st.session_state.marked[i][j]:
-                    button_color = "lightgreen"
-                elif i == 2 and j == 2:  # Center square
-                    button_color = "lightyellow"
-                else:
-                    button_color = "white"
+            st.subheader("Your Bingo Card")
+            for i in range(5):
+                cols = st.columns(5)
+                for j in range(5):
+                    is_marked = st.session_state.marked[i][j]
+                    if is_marked:
+                        button_color = "lightgreen"
+                    elif i == 2 and j == 2:  # Center square
+                        button_color = "lightyellow"
+                    else:
+                        button_color = "white"
 
-                # Render button
-                if cols[j].button(
-                    st.session_state.card[i][j],
-                    key=f"button_{i}_{j}",
-                    help="Click to mark/unmark",
-                ):
-                    st.session_state.marked[i][j] = not st.session_state.marked[i][j]
-                    st.session_state.bingo = check_bingo(st.session_state.marked)
+                    button_label = st.session_state.card[i][j]
+                    button_key = f"button_{i}_{j}"
 
-        if st.session_state.bingo:
-            st.balloons()
-            st.success("🎉 BINGO! You won! 🎉")
+                    # Create a unique key that includes the marked state
+                    styled_button_key = f"{button_key}_{is_marked}"
+
+                    if cols[j].button(
+                        button_label,
+                        key=styled_button_key,
+                        help="Click to mark/unmark",
+                    ):
+                        st.session_state.marked[i][j] = not is_marked
+                        st.session_state.bingo = check_bingo(st.session_state.marked)
+                        # No st.rerun() here for this attempt
+
+                    # Apply custom CSS based on the current marked state
+                    cols[j].markdown(
+                        f"""
+                        <style>
+                        div[data-testid="stButton"] > button[title="{button_label}"] {{
+                            background-color: {button_color};
+                            color: black;
+                            font-weight: bold;
+                            border: 1px solid black;
+                            padding: 5px;
+                            border-radius: 5px;
+                            width: 100%;
+                            height: 100%;
+                        }}
+                        </style>
+                        """,
+                        unsafe_allow_html=True,
+                    )
+
+            if st.session_state.bingo:
+                st.balloons()
+                st.success("🎉 BINGO! You won! 🎉")
 
     with col2:
         st.header("How to Play")
@@ -186,14 +211,6 @@ def main():
         - The center square is marked in yellow.
         - Get 5 in a row to win!
         """)
-
-        # Save selected goals to an Excel file
-        if st.button("Save My Activities"):
-            if user_name:
-                save_to_excel(user_name, list(st.session_state.selected_goals))
-                st.success("Your activities have been saved!")
-            else:
-                st.error("Please enter your name in the sidebar before saving.")
 
         if st.button("Generate New Card"):
             st.session_state.card = generate_card()
