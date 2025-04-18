@@ -115,22 +115,6 @@ def check_bingo(marked):
         return True
     return False
 
-def save_to_excel(user_name, selected_goals):
-    # Create a DataFrame with user data
-    data = {"Name": [user_name], "Selected Goals": [", ".join(selected_goals)]}
-    df = pd.DataFrame(data)
-
-    # Save to an Excel file
-    file_path = "user_activities.xlsx"
-    try:
-        # Append to the existing file if it exists
-        existing_df = pd.read_excel(file_path)
-        updated_df = pd.concat([existing_df, df], ignore_index=True)
-        updated_df.to_excel(file_path, index=False)
-    except FileNotFoundError:
-        # Create a new file if it doesn't exist
-        df.to_excel(file_path, index=False)
-
 def main():
     st.set_page_config(layout="wide")
     st.title("🎓 Interactive Graduation Bingo")
